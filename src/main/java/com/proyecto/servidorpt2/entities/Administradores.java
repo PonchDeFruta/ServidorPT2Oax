@@ -3,6 +3,7 @@ package com.proyecto.servidorpt2.entities;
 import jakarta.persistence.*;
 @Entity
 @Table(name="administradores")
+
 public class Administradores {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

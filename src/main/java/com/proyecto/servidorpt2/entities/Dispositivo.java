@@ -9,6 +9,9 @@ public class Dispositivo {
     @Column(name = "id_dispositivo")
     private Integer idDispositivo;
 
+    @Column(name = "nombre_dispositivo", length = 100, nullable = false)
+    private String nombreDispositivo;  // Nuevo campo para el nombre del dispositivo
+
     @Column(name = "contador_recepcion_mensajes", nullable = false)
     private Integer contadorRecepcionMensajes;
 
@@ -24,6 +27,10 @@ public class Dispositivo {
     public void setIdDispositivo(Integer idDispositivo) {
         this.idDispositivo = idDispositivo;
     }
+
+    public String getNombreDispositivo() {return nombreDispositivo;}
+
+    public void setNombreDispositivo(String nombreDispositivo) {this.nombreDispositivo = nombreDispositivo;}
 
     public Integer getContadorRecepcionMensajes() {
         return contadorRecepcionMensajes;

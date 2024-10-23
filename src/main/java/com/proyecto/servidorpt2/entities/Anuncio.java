@@ -23,6 +23,8 @@ public class Anuncio {
     @OneToMany(mappedBy = "anuncio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnuncioProgramado> anunciosProgramados;
 
+    //AGREGA FECHA DE ANUNCIO PROGRAMADO ESTO PARA QUE CUANDO SE CUMPLA LA FECHA SE MANDE EL ANUNCIO
+
     // Getters y Setters
     public Integer getIdMensaje() {
         return idMensaje;
