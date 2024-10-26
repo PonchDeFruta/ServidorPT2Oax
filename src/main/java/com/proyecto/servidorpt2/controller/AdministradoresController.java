@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.controller;
 
+import com.proyecto.servidorpt2.Utils.ApiResponse;
 import com.proyecto.servidorpt2.entities.Administradores;
 import com.proyecto.servidorpt2.service.AdministradoresService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,71 +20,71 @@ public class AdministradoresController {
 
     // GET: Obtener todos los administradores
     @GetMapping
-    public ResponseEntity<List<Administradores>> obtenerTodosLosAdministradores() {
+    public ResponseEntity<ApiResponse> obtenerTodosLosAdministradores() {
         try {
             List<Administradores> administradores = administradoresService.obtenerTodosLosAdministradores();
-            return new ResponseEntity<>(administradores, HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponse("success", "Administradores obtenidos con éxito"), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener los administradores"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // GET: Obtener un administrador por su ID
     @GetMapping("/{id}")
-    public ResponseEntity<Object> obtenerAdministradorPorId(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse> obtenerAdministradorPorId(@PathVariable Integer id) {
         try {
             Optional<Administradores> administrador = administradoresService.obtenerAdministradorPorId(id);
             if (administrador.isPresent()) {
-                return new ResponseEntity<>(administrador.get(), HttpStatus.OK);
+                return new ResponseEntity<>(new ApiResponse("success", "Administrador encontrado con éxito"), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Administrador no encontrado con ID: " + id, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ApiResponse("error", "Administrador no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al obtener el administrador", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener el administrador"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // POST: Crear un nuevo administrador
     @PostMapping
-    public ResponseEntity<Object> crearAdministrador(@RequestBody Administradores administrador) {
+    public ResponseEntity<ApiResponse> crearAdministrador(@RequestBody Administradores administrador) {
         try {
-            Administradores nuevoAdministrador = administradoresService.guardarAdministrador(administrador);
-            return new ResponseEntity<>(nuevoAdministrador, HttpStatus.CREATED);
+            administradoresService.guardarAdministrador(administrador);
+            return new ResponseEntity<>(new ApiResponse("success", "Administrador creado con éxito"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear el administrador", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al crear el administrador"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // PUT: Actualizar un administrador existente
     @PutMapping("/{id}")
-    public ResponseEntity<Object> actualizarAdministrador(@PathVariable Integer id, @RequestBody Administradores administrador) {
+    public ResponseEntity<ApiResponse> actualizarAdministrador(@PathVariable Integer id, @RequestBody Administradores administrador) {
         try {
             Optional<Administradores> administradorExistente = administradoresService.obtenerAdministradorPorId(id);
             if (administradorExistente.isPresent()) {
-                administrador.setIdAdministrador(id); // Asegurarse de que el ID es el correcto
-                Administradores administradorActualizado = administradoresService.guardarAdministrador(administrador);
-                return new ResponseEntity<>(administradorActualizado, HttpStatus.OK);
+                administrador.setIdAdministrador(id); // Asegurar que el ID es el correcto
+                administradoresService.guardarAdministrador(administrador);
+                return new ResponseEntity<>(new ApiResponse("success", "Administrador actualizado con éxito"), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Administrador no encontrado con ID: " + id, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ApiResponse("error", "Administrador no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar el administrador", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el administrador"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // DELETE: Eliminar un administrador por su ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> eliminarAdministrador(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse> eliminarAdministrador(@PathVariable Integer id) {
         try {
             Optional<Administradores> administradorExistente = administradoresService.obtenerAdministradorPorId(id);
             if (administradorExistente.isPresent()) {
                 administradoresService.eliminarAdministrador(id);
-                return new ResponseEntity<>("Administrador eliminado con éxito", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(new ApiResponse("success", "Administrador eliminado con éxito"), HttpStatus.NO_CONTENT);
             } else {
-                return new ResponseEntity<>("Administrador no encontrado con ID: " + id, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ApiResponse("error", "Administrador no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar el administrador", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el administrador"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

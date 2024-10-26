@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.controller;
 
+import com.proyecto.servidorpt2.Utils.ApiResponse;
 import com.proyecto.servidorpt2.dto.AnuncioProgramadoDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
 import com.proyecto.servidorpt2.entities.AnuncioProgramado;
@@ -24,79 +25,80 @@ public class AnuncioController {
     @Autowired
     private AnuncioProgramadoService anuncioProgramadoService;
 
-    // Obtener todos los anuncios
-    @GetMapping
-    public ResponseEntity<List<Anuncio>> obtenerTodosLosAnuncios() {
-        try {
-            List<Anuncio> anuncios = anuncioService.obtenerTodosLosAnuncios();
-            return new ResponseEntity<>(anuncios, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     // Obtener un anuncio por su ID
     @GetMapping("/{id}")
-    public ResponseEntity<Object> obtenerAnuncioPorId(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse> obtenerAnuncioPorId(@PathVariable Integer id) {
         try {
             Optional<Anuncio> anuncio = anuncioService.obtenerAnuncioPorId(id);
             if (anuncio.isPresent()) {
-                return new ResponseEntity<>(anuncio.get(), HttpStatus.OK);
+                return new ResponseEntity<>(new ApiResponse("success", "Anuncio encontrado"), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Anuncio no encontrado con ID: " + id, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ApiResponse("error", "Anuncio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al obtener el anuncio", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener el anuncio"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    // Crear un nuevo anuncio
+    // Obtener todos los anuncios
+    @GetMapping("/todos")
+    public ResponseEntity<ApiResponse> obtenerTodosLosAnuncios() {
+        try {
+            List<Anuncio> anuncios = anuncioService.obtenerTodosLosAnuncios();
+            return new ResponseEntity<>(new ApiResponse("success", "Anuncios obtenidos con éxito"), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener los anuncios"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Crear un nuevo anuncio y enviar un broadcast UDP
     @PostMapping
-    public ResponseEntity<Object> crearAnuncio(@RequestBody Anuncio anuncio) {
+    public ResponseEntity<ApiResponse> crearAnuncio(@RequestBody Anuncio anuncio) {
         try {
             Anuncio nuevoAnuncio = anuncioService.guardarAnuncio(anuncio);
-            return new ResponseEntity<>(nuevoAnuncio, HttpStatus.CREATED);
+            anuncioService.enviarBroadcastUDP(nuevoAnuncio);  // Enviar anuncio como broadcast UDP
+            return new ResponseEntity<>(new ApiResponse("success", "Anuncio creado y enviado por broadcast"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear el anuncio", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al crear el anuncio"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // Actualizar un anuncio existente
     @PutMapping("/{id}")
-    public ResponseEntity<Object> actualizarAnuncio(@PathVariable Integer id, @RequestBody Anuncio anuncio) {
+    public ResponseEntity<ApiResponse> actualizarAnuncio(@PathVariable Integer id, @RequestBody Anuncio anuncio) {
         try {
             Optional<Anuncio> anuncioExistente = anuncioService.obtenerAnuncioPorId(id);
             if (anuncioExistente.isPresent()) {
                 anuncio.setIdMensaje(id);
-                Anuncio anuncioActualizado = anuncioService.guardarAnuncio(anuncio);
-                return new ResponseEntity<>(anuncioActualizado, HttpStatus.OK);
+                anuncioService.guardarAnuncio(anuncio);
+                return new ResponseEntity<>(new ApiResponse("success", "Anuncio actualizado con éxito"), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Anuncio no encontrado con ID: " + id, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ApiResponse("error", "Anuncio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar el anuncio", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el anuncio"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // Eliminar un anuncio por su ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> eliminarAnuncio(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse> eliminarAnuncio(@PathVariable Integer id) {
         try {
             Optional<Anuncio> anuncioExistente = anuncioService.obtenerAnuncioPorId(id);
             if (anuncioExistente.isPresent()) {
                 anuncioService.eliminarAnuncio(id);
-                return new ResponseEntity<>("Anuncio eliminado con éxito", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(new ApiResponse("success", "Anuncio eliminado con éxito"), HttpStatus.NO_CONTENT);
             } else {
-                return new ResponseEntity<>("Anuncio no encontrado con ID: " + id, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ApiResponse("error", "Anuncio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar el anuncio", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el anuncio"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // Crear y programar un anuncio
     @PostMapping("/programar")
-    public ResponseEntity<Object> crearYProgramarAnuncio(@RequestBody AnuncioProgramadoDTO anuncioDTO) {
+    public ResponseEntity<ApiResponse> crearYProgramarAnuncio(@RequestBody AnuncioProgramadoDTO anuncioDTO) {
         try {
             // Crear el anuncio
             Anuncio nuevoAnuncio = new Anuncio();
@@ -115,9 +117,9 @@ public class AnuncioController {
                 anuncioProgramadoService.guardarAnuncioProgramado(anuncioProgramado);
             }
 
-            return new ResponseEntity<>(anuncioGuardado, HttpStatus.CREATED);
+            return new ResponseEntity<>(new ApiResponse("success", "Anuncio creado y programado con éxito"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear o programar el anuncio", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al crear o programar el anuncio"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

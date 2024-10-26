@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 @Entity
 @Table(name = "anuncio")
 public class Anuncio {
@@ -14,16 +13,20 @@ public class Anuncio {
     @Column(name = "id_mensaje")
     private Integer idMensaje;
 
+    @Column(name = "titulo", length = 100, nullable = false)
+    private String titulo;
+
     @Column(name = "contenido_del_mensaje", length = 255, nullable = false)
     private String contenidoDelMensaje;
 
     @Column(name = "fecha_mensaje", nullable = false)
     private LocalDateTime fechaMensaje;
 
+    @Column(name = "es_audio", nullable = false)
+    private boolean esAudio; // Nuevo campo para indicar si el contenido es audio
+
     @OneToMany(mappedBy = "anuncio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnuncioProgramado> anunciosProgramados;
-
-    //AGREGA FECHA DE ANUNCIO PROGRAMADO ESTO PARA QUE CUANDO SE CUMPLA LA FECHA SE MANDE EL ANUNCIO
 
     // Getters y Setters
     public Integer getIdMensaje() {
@@ -32,6 +35,14 @@ public class Anuncio {
 
     public void setIdMensaje(Integer idMensaje) {
         this.idMensaje = idMensaje;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
     }
 
     public String getContenidoDelMensaje() {
@@ -48,6 +59,14 @@ public class Anuncio {
 
     public void setFechaMensaje(LocalDateTime fechaMensaje) {
         this.fechaMensaje = fechaMensaje;
+    }
+
+    public boolean isEsAudio() {
+        return esAudio;
+    }
+
+    public void setEsAudio(boolean esAudio) {
+        this.esAudio = esAudio;
     }
 
     public List<AnuncioProgramado> getAnunciosProgramados() {
