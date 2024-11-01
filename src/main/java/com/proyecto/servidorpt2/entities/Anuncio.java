@@ -23,10 +23,16 @@ public class Anuncio {
     private LocalDateTime fechaMensaje;
 
     @Column(name = "es_audio", nullable = false)
-    private boolean esAudio; // Nuevo campo para indicar si el contenido es audio
+    private boolean esAudio;
 
+    // Relación One-to-Many con AnuncioProgramado
     @OneToMany(mappedBy = "anuncio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnuncioProgramado> anunciosProgramados;
+
+    // Relación Many-to-One opcional con Residentes
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_residente", referencedColumnName = "id_residente", nullable = true)
+    private Residentes residente;
 
     // Getters y Setters
     public Integer getIdMensaje() {
@@ -75,5 +81,13 @@ public class Anuncio {
 
     public void setAnunciosProgramados(List<AnuncioProgramado> anunciosProgramados) {
         this.anunciosProgramados = anunciosProgramados;
+    }
+
+    public Residentes getResidente() {
+        return residente;
+    }
+
+    public void setResidente(Residentes residente) {
+        this.residente = residente;
     }
 }

@@ -20,27 +20,27 @@ public class DomiciliosController {
 
     // Obtener todos los domicilios
     @GetMapping
-    public ResponseEntity<ApiResponse> obtenerTodosLosDomicilios() {
+    public ResponseEntity<Object> obtenerTodosLosDomicilios() {
         try {
             List<Domicilios> domicilios = domiciliosService.obtenerTodosLosDomicilios();
-            return new ResponseEntity<>(new ApiResponse("success", "Domicilios obtenidos con éxito"), HttpStatus.OK);
+            return new ResponseEntity<>(domicilios, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de domicilios"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de domicilios: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // Obtener un domicilio por su ID
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> obtenerDomicilioPorId(@PathVariable Integer id) {
+    public ResponseEntity<Object> obtenerDomicilioPorId(@PathVariable Integer id) {
         try {
             Optional<Domicilios> domicilio = domiciliosService.obtenerDomicilioPorId(id);
             if (domicilio.isPresent()) {
-                return new ResponseEntity<>(new ApiResponse("success", "Domicilio encontrado con éxito"), HttpStatus.OK);
+                return new ResponseEntity<>(domicilio.get(), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Domicilio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener el domicilio"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener el domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -51,7 +51,7 @@ public class DomiciliosController {
             domiciliosService.guardarDomicilio(domicilio);
             return new ResponseEntity<>(new ApiResponse("success", "Domicilio creado con éxito"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al crear el domicilio"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al crear el domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -61,14 +61,14 @@ public class DomiciliosController {
         try {
             Optional<Domicilios> domicilioExistente = domiciliosService.obtenerDomicilioPorId(id);
             if (domicilioExistente.isPresent()) {
-                domicilio.setIdDomicilio(id); // Asegurarse de que el ID sea el correcto
+                domicilio.setIdDomicilio(id);
                 domiciliosService.guardarDomicilio(domicilio);
                 return new ResponseEntity<>(new ApiResponse("success", "Domicilio actualizado con éxito"), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Domicilio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el domicilio"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -79,12 +79,12 @@ public class DomiciliosController {
             Optional<Domicilios> domicilioExistente = domiciliosService.obtenerDomicilioPorId(id);
             if (domicilioExistente.isPresent()) {
                 domiciliosService.eliminarDomicilio(id);
-                return new ResponseEntity<>(new ApiResponse("success", "Domicilio eliminado con éxito"), HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(new ApiResponse("success", "Domicilio eliminado con éxito"), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Domicilio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el domicilio"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

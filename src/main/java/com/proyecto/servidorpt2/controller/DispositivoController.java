@@ -20,27 +20,27 @@ public class DispositivoController {
 
     // GET: Obtener todos los dispositivos
     @GetMapping
-    public ResponseEntity<ApiResponse> obtenerTodosLosDispositivos() {
+    public ResponseEntity<Object> obtenerTodosLosDispositivos() {
         try {
             List<Dispositivo> dispositivos = dispositivoService.obtenerTodosLosDispositivos();
-            return new ResponseEntity<>(new ApiResponse("success", "Dispositivos obtenidos con éxito"), HttpStatus.OK);
+            return new ResponseEntity<>(dispositivos, HttpStatus.OK); // Devuelve la lista de dispositivos directamente
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de dispositivos"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de dispositivos: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // GET: Obtener un dispositivo por su ID
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> obtenerDispositivoPorId(@PathVariable Integer id) {
+    public ResponseEntity<Object> obtenerDispositivoPorId(@PathVariable Integer id) {
         try {
             Optional<Dispositivo> dispositivoData = dispositivoService.obtenerDispositivoPorId(id);
             if (dispositivoData.isPresent()) {
-                return new ResponseEntity<>(new ApiResponse("success", "Dispositivo encontrado con éxito"), HttpStatus.OK);
+                return new ResponseEntity<>(dispositivoData.get(), HttpStatus.OK); // Devuelve el dispositivo directamente
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Dispositivo no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener el dispositivo"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener el dispositivo: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -51,7 +51,7 @@ public class DispositivoController {
             dispositivoService.guardarDispositivo(dispositivo);
             return new ResponseEntity<>(new ApiResponse("success", "Dispositivo creado con éxito"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al crear el dispositivo"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al crear el dispositivo: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -68,7 +68,7 @@ public class DispositivoController {
                 return new ResponseEntity<>(new ApiResponse("error", "Dispositivo no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el dispositivo"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el dispositivo: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -79,12 +79,12 @@ public class DispositivoController {
             Optional<Dispositivo> dispositivoExistente = dispositivoService.obtenerDispositivoPorId(id);
             if (dispositivoExistente.isPresent()) {
                 dispositivoService.eliminarDispositivo(id);
-                return new ResponseEntity<>(new ApiResponse("success", "Dispositivo eliminado con éxito"), HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(new ApiResponse("success", "Dispositivo eliminado con éxito"), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Dispositivo no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el dispositivo"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el dispositivo: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

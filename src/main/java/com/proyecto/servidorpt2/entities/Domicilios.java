@@ -1,5 +1,7 @@
 package com.proyecto.servidorpt2.entities;
+
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "domicilios")
@@ -18,10 +20,9 @@ public class Domicilios {
     @Column(name = "coordenadas", length = 255)
     private String coordenadas;
 
-    // Relación Many-to-One con Residentes
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_residente", referencedColumnName = "id_residente", nullable = false)
-    private Residentes residentes;  // Relación Many-to-One con la entidad Residentes
+    // Relación One-to-Many con Residentes
+    @OneToMany(mappedBy = "domicilio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Residentes> residentes;
 
     // Getters y Setters
     public Integer getIdDomicilio() {
@@ -56,11 +57,11 @@ public class Domicilios {
         this.coordenadas = coordenadas;
     }
 
-    public Residentes getResidentes() {
+    public List<Residentes> getResidentes() {
         return residentes;
     }
 
-    public void setResidentes(Residentes residentes) {
+    public void setResidentes(List<Residentes> residentes) {
         this.residentes = residentes;
     }
 }

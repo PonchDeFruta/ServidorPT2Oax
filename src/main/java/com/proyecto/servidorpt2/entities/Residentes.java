@@ -1,8 +1,9 @@
 package com.proyecto.servidorpt2.entities;
 
 import jakarta.persistence.*;
+
 @Entity
-@Table(name="residentes")
+@Table(name = "residentes")
 public class Residentes {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,9 +22,9 @@ public class Residentes {
     @Column(name = "comercio", length = 255)
     private String comercio;
 
-    // Relación Many-to-One con Domicilio
+    // Relación Many-to-One con Domicilios, permitiendo valores nulos
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_domicilio", referencedColumnName = "id_domicilio", nullable = false)
+    @JoinColumn(name = "id_domicilio", referencedColumnName = "id_domicilio", nullable = true)
     private Domicilios domicilio;
 
     // Getters y Setters

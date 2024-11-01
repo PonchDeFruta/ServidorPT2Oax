@@ -27,6 +27,8 @@ public class ResidentesService {
         return residentesRepository.save(residente);
     }
 
+    //NO FALTA UN METODO PARA GUARDAR LOS RESIDENTES CON DOMICILIO ??
+
     public void eliminarResidente(Integer id) {
         residentesRepository.deleteById(id);
     }

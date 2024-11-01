@@ -7,10 +7,7 @@ public class ResidenteDTO {
     private String apodo;
     private String comercio;
 
-    // ID del domicilio existente
-    private Integer domicilioId;
-
-    // Datos del nuevo domicilio si se va a crear uno nuevo
+    // Datos del domicilio
     private String direccion;
     private String referencia;
     private String coordenadas;
@@ -46,14 +43,6 @@ public class ResidenteDTO {
 
     public void setComercio(String comercio) {
         this.comercio = comercio;
-    }
-
-    public Integer getDomicilioId() {
-        return domicilioId;
-    }
-
-    public void setDomicilioId(Integer domicilioId) {
-        this.domicilioId = domicilioId;
     }
 
     public String getDireccion() {
