@@ -1,14 +1,12 @@
 package com.proyecto.servidorpt2.dto;
 
-import java.time.LocalDateTime;
-
 public class AnuncioDTO {
     private Integer idMensaje;
     private String titulo;
     private String contenidoDelMensaje;
-    private LocalDateTime fechaMensaje;
+    private String fechaMensaje; // Cambiado a String
     private boolean esAudio;
-    private Integer idResidente; // Añadir el ID del residente aquí
+    private Integer idResidente;
 
     // Getters y Setters
     public Integer getIdMensaje() {
@@ -35,11 +33,11 @@ public class AnuncioDTO {
         this.contenidoDelMensaje = contenidoDelMensaje;
     }
 
-    public LocalDateTime getFechaMensaje() {
+    public String getFechaMensaje() {
         return fechaMensaje;
     }
 
-    public void setFechaMensaje(LocalDateTime fechaMensaje) {
+    public void setFechaMensaje(String fechaMensaje) {
         this.fechaMensaje = fechaMensaje;
     }
 

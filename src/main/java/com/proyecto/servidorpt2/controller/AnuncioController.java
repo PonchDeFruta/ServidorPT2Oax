@@ -14,8 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,13 +43,16 @@ public class AnuncioController {
     @Autowired
     private BroadcastService broadcastService;
 
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     // Obtener un anuncio por su ID
     @GetMapping("/{id}")
     public ResponseEntity<Object> obtenerAnuncioPorId(@PathVariable Integer id) {
         try {
             Optional<Anuncio> anuncio = anuncioService.obtenerAnuncioPorId(id);
             if (anuncio.isPresent()) {
-                return new ResponseEntity<>(anuncio.get(), HttpStatus.OK);
+                AnuncioDTO dto = anuncioService.convertirAnuncioAAnuncioDTO(anuncio.get());
+                return new ResponseEntity<>(dto, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Anuncio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
@@ -60,17 +70,9 @@ public class AnuncioController {
                 return new ResponseEntity<>(new ApiResponse("info", "No hay anuncios disponibles"), HttpStatus.OK);
             }
 
-            // Convertir a DTO
-            List<AnuncioDTO> anunciosDTO = anuncios.stream().map(anuncio -> {
-                AnuncioDTO dto = new AnuncioDTO();
-                dto.setIdMensaje(anuncio.getIdMensaje());
-                dto.setTitulo(anuncio.getTitulo());
-                dto.setContenidoDelMensaje(anuncio.getContenidoDelMensaje());
-                dto.setFechaMensaje(anuncio.getFechaMensaje());
-                dto.setEsAudio(anuncio.isEsAudio());
-                dto.setIdResidente(anuncio.getResidente() != null ? anuncio.getResidente().getIdResidente() : null);
-                return dto;
-            }).collect(Collectors.toList());
+            List<AnuncioDTO> anunciosDTO = anuncios.stream()
+                    .map(anuncio -> anuncioService.convertirAnuncioAAnuncioDTO(anuncio))
+                    .collect(Collectors.toList());
 
             return new ResponseEntity<>(anunciosDTO, HttpStatus.OK);
         } catch (Exception e) {
@@ -78,15 +80,43 @@ public class AnuncioController {
         }
     }
 
+
+    @GetMapping("/hoy")
+    public ResponseEntity<Object> obtenerAnunciosDeHoy() {
+        try {
+            List<Anuncio> anuncios = anuncioService.obtenerTodosLosAnuncios();
+            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+            LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+            List<AnuncioDTO> anunciosDeHoyDTO = anuncios.stream()
+                    .filter(anuncio -> anuncio.getFechaMensaje().isAfter(startOfDay) && anuncio.getFechaMensaje().isBefore(endOfDay))
+                    .map(anuncio -> anuncioService.convertirAnuncioAAnuncioDTO(anuncio))
+                    .collect(Collectors.toList());
+
+            if (anunciosDeHoyDTO.isEmpty()) {
+                return new ResponseEntity<>(new ApiResponse("info", "No hay anuncios para el día de hoy"), HttpStatus.OK);
+            } else if (anunciosDeHoyDTO.size() == 1) {
+                return new ResponseEntity<>(anunciosDeHoyDTO.get(0), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(anunciosDeHoyDTO, HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener los anuncios de hoy: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
     // Crear un nuevo anuncio
-    @PostMapping("crearAnuncio")
+
+    @PostMapping("/crearAnuncio")
     public ResponseEntity<ApiResponse> crearAnuncio(@RequestBody AnuncioDTO anuncioDTO) {
         try {
             Anuncio nuevoAnuncio = new Anuncio();
             nuevoAnuncio.setTitulo(anuncioDTO.getTitulo());
-            nuevoAnuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
-            nuevoAnuncio.setFechaMensaje(anuncioDTO.getFechaMensaje());
+            nuevoAnuncio.setFechaMensaje(LocalDateTime.parse(anuncioDTO.getFechaMensaje()));
             nuevoAnuncio.setEsAudio(anuncioDTO.isEsAudio());
+            nuevoAnuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
 
             // Manejar la relación con el residente si se proporciona un ID
             if (anuncioDTO.getIdResidente() != null) {
@@ -110,6 +140,9 @@ public class AnuncioController {
         }
     }
 
+
+
+
     // Actualizar un anuncio existente
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> actualizarAnuncio(@PathVariable Integer id, @RequestBody AnuncioDTO anuncioDTO) {
@@ -119,7 +152,7 @@ public class AnuncioController {
                 Anuncio anuncio = anuncioExistente.get();
                 anuncio.setTitulo(anuncioDTO.getTitulo());
                 anuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
-                anuncio.setFechaMensaje(anuncioDTO.getFechaMensaje());
+                anuncio.setFechaMensaje(anuncioDTO.getFechaMensaje() != null ? LocalDateTime.parse(anuncioDTO.getFechaMensaje(), formatter) : LocalDateTime.now());
                 anuncio.setEsAudio(anuncioDTO.isEsAudio());
 
                 // Actualizar la relación con el residente si se proporciona un ID
@@ -159,7 +192,6 @@ public class AnuncioController {
     }
 
     // Crear y programar un anuncio
-    @PostMapping("/programar")
     public ResponseEntity<ApiResponse> crearYProgramarAnuncio(@RequestBody AnuncioProgramadoDTO anuncioDTO) {
         try {
             // Crear el anuncio
@@ -174,8 +206,6 @@ public class AnuncioController {
                 anuncioProgramado.setAnuncio(anuncioGuardado);
                 anuncioProgramado.setFechaMensajeProgramado(anuncioDTO.getFechaProgramada());
                 anuncioProgramado.setEstatusMsj("PENDIENTE");
-
-                // Guardar el anuncio programado
                 anuncioProgramadoService.guardarAnuncioProgramado(anuncioProgramado);
             }
 
@@ -184,4 +214,15 @@ public class AnuncioController {
             return new ResponseEntity<>(new ApiResponse("error", "Error al crear o programar el anuncio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @DeleteMapping("/borrarTodos")
+    public ResponseEntity<ApiResponse> borrarTodosLosAnuncios() {
+        try {
+            anuncioService.eliminarTodosLosAnuncios(); // Implementa este método en tu servicio
+            return new ResponseEntity<>(new ApiResponse("success", "Todos los anuncios han sido borrados"), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse("error", "Error al borrar los anuncios: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 }
