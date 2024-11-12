@@ -32,4 +32,8 @@ public class ResidentesService {
     public void eliminarResidente(Integer id) {
         residentesRepository.deleteById(id);
     }
+    public List<Residentes> obtenerResidentesConDomicilio() {
+        // Usamos una consulta personalizada para obtener solo los residentes con domicilio
+        return residentesRepository.findResidentesWithDomicilio();
+    }
 }

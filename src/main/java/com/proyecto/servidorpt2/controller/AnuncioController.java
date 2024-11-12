@@ -2,11 +2,8 @@ package com.proyecto.servidorpt2.controller;
 
 import com.proyecto.servidorpt2.Utils.ApiResponse;
 import com.proyecto.servidorpt2.dto.AnuncioDTO;
-import com.proyecto.servidorpt2.dto.AnuncioProgramadoDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
-import com.proyecto.servidorpt2.entities.AnuncioProgramado;
 import com.proyecto.servidorpt2.entities.Residentes;
-import com.proyecto.servidorpt2.service.AnuncioProgramadoService;
 import com.proyecto.servidorpt2.service.AnuncioService;
 import com.proyecto.servidorpt2.service.BroadcastService;
 import com.proyecto.servidorpt2.service.ResidentesService;
@@ -14,11 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -33,9 +26,6 @@ public class AnuncioController {
 
     @Autowired
     private AnuncioService anuncioService;
-
-    @Autowired
-    private AnuncioProgramadoService anuncioProgramadoService;
 
     @Autowired
     private ResidentesService residentesService;
@@ -106,7 +96,6 @@ public class AnuncioController {
     }
 
 
-
     // Crear un nuevo anuncio
 
     @PostMapping("/crearAnuncio")
@@ -114,11 +103,11 @@ public class AnuncioController {
         try {
             Anuncio nuevoAnuncio = new Anuncio();
             nuevoAnuncio.setTitulo(anuncioDTO.getTitulo());
+            nuevoAnuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
             nuevoAnuncio.setFechaMensaje(LocalDateTime.parse(anuncioDTO.getFechaMensaje()));
             nuevoAnuncio.setEsAudio(anuncioDTO.isEsAudio());
-            nuevoAnuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
 
-            // Manejar la relación con el residente si se proporciona un ID
+            // Verificar si se proporciona un ID de residente
             if (anuncioDTO.getIdResidente() != null) {
                 Optional<Residentes> residenteOpt = residentesService.obtenerResidentePorId(anuncioDTO.getIdResidente());
                 if (residenteOpt.isPresent()) {
@@ -127,7 +116,6 @@ public class AnuncioController {
                     return new ResponseEntity<>(new ApiResponse("error", "Residente no encontrado con ID: " + anuncioDTO.getIdResidente()), HttpStatus.BAD_REQUEST);
                 }
             }
-
             // Guardar el anuncio
             Anuncio anuncioGuardado = anuncioService.guardarAnuncio(nuevoAnuncio);
 
@@ -139,9 +127,6 @@ public class AnuncioController {
             return new ResponseEntity<>(new ApiResponse("error", "Error al crear el anuncio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
 
     // Actualizar un anuncio existente
     @PutMapping("/{id}")
@@ -191,29 +176,6 @@ public class AnuncioController {
         }
     }
 
-    // Crear y programar un anuncio
-    public ResponseEntity<ApiResponse> crearYProgramarAnuncio(@RequestBody AnuncioProgramadoDTO anuncioDTO) {
-        try {
-            // Crear el anuncio
-            Anuncio nuevoAnuncio = new Anuncio();
-            nuevoAnuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
-            nuevoAnuncio.setFechaMensaje(anuncioDTO.getFechaMensaje() != null ? anuncioDTO.getFechaMensaje() : LocalDateTime.now());
-            Anuncio anuncioGuardado = anuncioService.guardarAnuncio(nuevoAnuncio);
-
-            // Si hay una fecha programada, crear un anuncio programado
-            if (anuncioDTO.getFechaProgramada() != null && anuncioDTO.getFechaProgramada().isAfter(LocalDateTime.now())) {
-                AnuncioProgramado anuncioProgramado = new AnuncioProgramado();
-                anuncioProgramado.setAnuncio(anuncioGuardado);
-                anuncioProgramado.setFechaMensajeProgramado(anuncioDTO.getFechaProgramada());
-                anuncioProgramado.setEstatusMsj("PENDIENTE");
-                anuncioProgramadoService.guardarAnuncioProgramado(anuncioProgramado);
-            }
-
-            return new ResponseEntity<>(new ApiResponse("success", "Anuncio creado y programado con éxito"), HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al crear o programar el anuncio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
     @DeleteMapping("/borrarTodos")
     public ResponseEntity<ApiResponse> borrarTodosLosAnuncios() {
         try {

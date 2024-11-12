@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class Domicilios {
 
     // Relación One-to-Many con Residentes
     @OneToMany(mappedBy = "domicilio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore  // Ignorar la serialización recursiva
     private List<Residentes> residentes;
 
     // Getters y Setters

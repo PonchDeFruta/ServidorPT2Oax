@@ -25,14 +25,11 @@ public class Anuncio {
     @Column(name = "es_audio", nullable = false)
     private boolean esAudio;
 
-    // Relación One-to-Many con AnuncioProgramado
-    @OneToMany(mappedBy = "anuncio", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AnuncioProgramado> anunciosProgramados;
-
-    // Relación Many-to-One opcional con Residentes
+    // Relación Many-to-One con Residentes, ahora permitiendo valores nulos
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_residente", referencedColumnName = "id_residente", nullable = true)
     private Residentes residente;
+
 
     // Getters y Setters
     public Integer getIdMensaje() {
@@ -73,14 +70,6 @@ public class Anuncio {
 
     public void setEsAudio(boolean esAudio) {
         this.esAudio = esAudio;
-    }
-
-    public List<AnuncioProgramado> getAnunciosProgramados() {
-        return anunciosProgramados;
-    }
-
-    public void setAnunciosProgramados(List<AnuncioProgramado> anunciosProgramados) {
-        this.anunciosProgramados = anunciosProgramados;
     }
 
     public Residentes getResidente() {

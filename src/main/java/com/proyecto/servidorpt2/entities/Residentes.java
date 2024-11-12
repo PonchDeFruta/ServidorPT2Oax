@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "residentes")
 public class Residentes {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_residente")
@@ -22,7 +23,7 @@ public class Residentes {
     @Column(name = "comercio", length = 255)
     private String comercio;
 
-    // Relación Many-to-One con Domicilios, permitiendo valores nulos
+    // Relación Many-to-One con Domicilios
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_domicilio", referencedColumnName = "id_domicilio", nullable = true)
     private Domicilios domicilio;

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/residentes")
@@ -20,15 +21,24 @@ public class ResidentesController {
 
     @Autowired
     private ResidentesService residentesService;
+    @Autowired
+    DomiciliosService domiciliosService;
 
     // Obtener todos los residentes
-    @GetMapping
-    public ResponseEntity<Object> obtenerTodosLosResidentes() {
+    @GetMapping("/obtenerResidenteDomicilio")
+    public ResponseEntity<Object> obtenerTodosLosResidentesConDomicilio() {
         try {
-            List<Residentes> residentes = residentesService.obtenerTodosLosResidentes();
+            // Obtener los residentes con domicilio, asegurándonos de que tengan domicilio
+            List<Residentes> residentes = residentesService.obtenerResidentesConDomicilio();
+
+            // Filtrar los residentes que no tienen domicilio
+            residentes = residentes.stream()
+                    .filter(residente -> residente.getDomicilio() != null)  // Filtramos los residentes sin domicilio
+                    .collect(Collectors.toList());
+
             return new ResponseEntity<>(residentes, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de residentes: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de residentes con domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -48,32 +58,30 @@ public class ResidentesController {
     }
 
     // Crear un nuevo residente
-    @PostMapping("/crearResidenteConDomicilio")
-    public ResponseEntity<ApiResponse> crearResidenteConDomicilio(@RequestBody Residentes residente) {
+
+    @PostMapping("/crearResidente")
+    public ResponseEntity<ApiResponse> crearResidente(@RequestBody Residentes residente) {
         try {
             // Verificar si el residente trae un domicilio
             if (residente.getDomicilio() != null) {
-                // Si el domicilio tiene valores válidos (e.g., dirección), guardar el domicilio
                 Domicilios domicilio = residente.getDomicilio();
                 if (domicilio.getDireccion() != null && !domicilio.getDireccion().isEmpty()) {
-                    // Guardar el domicilio en cascada junto con el residente
+                    // Guardar el domicilio primero
+
+                    domicilio = domiciliosService.guardarDomicilio(domicilio);
                     residente.setDomicilio(domicilio);
                 } else {
-                    // Si el domicilio está incompleto, devolver un error
                     return new ResponseEntity<>(new ApiResponse("error", "El domicilio proporcionado está incompleto"), HttpStatus.BAD_REQUEST);
                 }
             }
 
-            // Guardar el residente (con o sin domicilio)
+            // Guardar el residente
             residentesService.guardarResidente(residente);
-
             return new ResponseEntity<>(new ApiResponse("success", "Residente creado con éxito"), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al crear el residente: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 
     // Actualizar un residente existente
     @PutMapping("/{id}")
