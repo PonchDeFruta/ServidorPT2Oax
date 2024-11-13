@@ -2,6 +2,8 @@ package com.proyecto.servidorpt2.controller;
 
 import com.proyecto.servidorpt2.Utils.ApiResponse;
 import com.proyecto.servidorpt2.dto.AnuncioDTO;
+import com.proyecto.servidorpt2.dto.DomicilioDTO;
+import com.proyecto.servidorpt2.dto.ResidenteDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
 import com.proyecto.servidorpt2.entities.Residentes;
 import com.proyecto.servidorpt2.service.AnuncioService;
@@ -96,6 +98,7 @@ public class AnuncioController {
     }
 
 
+
     // Crear un nuevo anuncio
 
     @PostMapping("/crearAnuncio")
@@ -116,17 +119,23 @@ public class AnuncioController {
                     return new ResponseEntity<>(new ApiResponse("error", "Residente no encontrado con ID: " + anuncioDTO.getIdResidente()), HttpStatus.BAD_REQUEST);
                 }
             }
+
             // Guardar el anuncio
             Anuncio anuncioGuardado = anuncioService.guardarAnuncio(nuevoAnuncio);
 
-            // Enviar el anuncio por broadcast UDP
-            broadcastService.enviarAnuncioPorBroadcast(anuncioGuardado);
+            // Convertir a AnuncioDTO para enviar y devolver en el formato requerido
+            AnuncioDTO anuncioDTOResponse = anuncioService.convertirAnuncioAAnuncioDTO(anuncioGuardado);
+
+            // Enviar el anuncio por broadcast UDP en formato JSON
+            broadcastService.enviarAnuncioPorBroadcast(anuncioDTOResponse);
 
             return new ResponseEntity<>(new ApiResponse("success", "Anuncio creado con éxito"), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al crear el anuncio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     // Actualizar un anuncio existente
     @PutMapping("/{id}")

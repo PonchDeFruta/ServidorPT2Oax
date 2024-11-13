@@ -2,6 +2,8 @@
 package com.proyecto.servidorpt2.controller;
 
 import com.proyecto.servidorpt2.Utils.ApiResponse;
+import com.proyecto.servidorpt2.dto.DomicilioDTO;
+import com.proyecto.servidorpt2.dto.ResidenteDTO;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.entities.Residentes;
 import com.proyecto.servidorpt2.service.DomiciliosService;
@@ -41,6 +43,24 @@ public class ResidentesController {
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de residentes con domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    @GetMapping("/obtenerTodosResidentes")
+    public List<ResidenteDTO> obtenerTodosLosResidentesDTO() {
+        List<Residentes> residentes = residentesService.obtenerTodosLosResidentes();
+        return residentes.stream().map(residente -> {
+            ResidenteDTO dto = new ResidenteDTO();
+            dto.setIdResidente(residente.getIdResidente());
+            dto.setNombre(residente.getNombre());
+            dto.setApellido(residente.getApellido());
+
+            if (residente.getDomicilio() != null) {
+                DomicilioDTO domicilioDTO = new DomicilioDTO();
+                domicilioDTO.setIdDomicilio(residente.getDomicilio().getIdDomicilio());
+                domicilioDTO.setDireccion(residente.getDomicilio().getDireccion());
+                dto.setDomicilio(domicilioDTO);
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     // Obtener un residente por su ID
