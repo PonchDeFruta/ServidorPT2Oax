@@ -19,7 +19,7 @@ public class DomiciliosController {
     private DomiciliosService domiciliosService;
 
     // Obtener todos los domicilios
-    @GetMapping("/obtenerTodosLosDomicilios")
+    @GetMapping()
     public ResponseEntity<Object> obtenerTodosLosDomicilios() {
         try {
             List<Domicilios> domicilios = domiciliosService.obtenerTodosLosDomicilios();

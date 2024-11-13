@@ -1,10 +1,15 @@
 package com.proyecto.servidorpt2.entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "residentes")
+@Getter
+@Setter
 public class Residentes {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,53 +32,4 @@ public class Residentes {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_domicilio", referencedColumnName = "id_domicilio", nullable = true)
     private Domicilios domicilio;
-
-    // Getters y Setters
-    public Integer getIdResidente() {
-        return idResidente;
-    }
-
-    public void setIdResidente(Integer idResidente) {
-        this.idResidente = idResidente;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getApellido() {
-        return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
-
-    public String getApodo() {
-        return apodo;
-    }
-
-    public void setApodo(String apodo) {
-        this.apodo = apodo;
-    }
-
-    public String getComercio() {
-        return comercio;
-    }
-
-    public void setComercio(String comercio) {
-        this.comercio = comercio;
-    }
-
-    public Domicilios getDomicilio() {
-        return domicilio;
-    }
-
-    public void setDomicilio(Domicilios domicilio) {
-        this.domicilio = domicilio;
-    }
 }

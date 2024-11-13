@@ -1,7 +1,13 @@
 package com.proyecto.servidorpt2.entities;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table(name="dispositivo")
+@Getter
+@Setter
+
 public class Dispositivo {
 
     @Id
@@ -19,33 +25,5 @@ public class Dispositivo {
     @JoinColumn(name = "id_mensaje", referencedColumnName = "id_mensaje", nullable = false)
     private Anuncio anuncio;  // Relación Many-to-One con Anuncio (o Mensaje)
 
-    // Getters y Setters
-    public Integer getIdDispositivo() {
-        return idDispositivo;
-    }
-
-    public void setIdDispositivo(Integer idDispositivo) {
-        this.idDispositivo = idDispositivo;
-    }
-
-    public String getNombreDispositivo() {return nombreDispositivo;}
-
-    public void setNombreDispositivo(String nombreDispositivo) {this.nombreDispositivo = nombreDispositivo;}
-
-    public Integer getContadorRecepcionMensajes() {
-        return contadorRecepcionMensajes;
-    }
-
-    public void setContadorRecepcionMensajes(Integer contadorRecepcionMensajes) {
-        this.contadorRecepcionMensajes = contadorRecepcionMensajes;
-    }
-
-    public Anuncio getAnuncio() {
-        return anuncio;
-    }
-
-    public void setAnuncio(Anuncio anuncio) {
-        this.anuncio = anuncio;
-    }
 
 }
