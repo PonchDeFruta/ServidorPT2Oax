@@ -52,6 +52,8 @@ public class ResidentesController {
             dto.setIdResidente(residente.getIdResidente());
             dto.setNombre(residente.getNombre());
             dto.setApellido(residente.getApellido());
+            dto.setApodo(residente.getApodo());
+            dto.setComercio(residente.getComercio());
 
             if (residente.getDomicilio() != null) {
                 DomicilioDTO domicilioDTO = new DomicilioDTO();

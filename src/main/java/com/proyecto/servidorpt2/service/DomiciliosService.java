@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.service;
 
+import com.proyecto.servidorpt2.Utils.Encriptar;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.repository.DomiciliosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,23 +15,47 @@ public class DomiciliosService {
     @Autowired
     private DomiciliosRepository domiciliosRepository;
 
-    // Obtener todos los domicilios
+    @Autowired
+    private Encriptar encryptionService;
+
     public List<Domicilios> obtenerTodosLosDomicilios() {
-        return domiciliosRepository.findAll();
+        List<Domicilios> domicilios = domiciliosRepository.findAll();
+        domicilios.forEach(this::desencriptarDomicilio);
+        return domicilios;
     }
 
-    // Obtener un domicilio por su ID
     public Optional<Domicilios> obtenerDomicilioPorId(Integer id) {
-        return domiciliosRepository.findById(id);
+        Optional<Domicilios> domicilio = domiciliosRepository.findById(id);
+        domicilio.ifPresent(this::desencriptarDomicilio);
+        return domicilio;
     }
 
-    // Crear o actualizar un domicilio
     public Domicilios guardarDomicilio(Domicilios domicilio) {
+        encriptarDomicilio(domicilio);
         return domiciliosRepository.save(domicilio);
     }
 
-    // Eliminar un domicilio por su ID
     public void eliminarDomicilio(Integer id) {
         domiciliosRepository.deleteById(id);
+    }
+
+    private void encriptarDomicilio(Domicilios domicilio) {
+        try {
+            domicilio.setDireccion(encryptionService.encrypt(domicilio.getDireccion()));
+            domicilio.setReferencia(encryptionService.encrypt(domicilio.getReferencia()));
+            domicilio.setCoordenadas(encryptionService.encrypt(domicilio.getCoordenadas()));
+        } catch (Exception e) {
+            throw new RuntimeException("Error al encriptar datos del domicilio", e);
+        }
+    }
+
+    private void desencriptarDomicilio(Domicilios domicilio) {
+        try {
+            domicilio.setDireccion(encryptionService.decrypt(domicilio.getDireccion()));
+            domicilio.setReferencia(encryptionService.decrypt(domicilio.getReferencia()));
+            domicilio.setCoordenadas(encryptionService.decrypt(domicilio.getCoordenadas()));
+        } catch (Exception e) {
+            throw new RuntimeException("Error al desencriptar datos del domicilio", e);
+        }
     }
 }

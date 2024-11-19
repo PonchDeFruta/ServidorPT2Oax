@@ -1,19 +1,20 @@
 package com.proyecto.servidorpt2.service;
 
+import com.proyecto.servidorpt2.Utils.Encriptar;
 import com.proyecto.servidorpt2.dto.AnuncioDTO;
 import com.proyecto.servidorpt2.dto.DomicilioDTO;
 import com.proyecto.servidorpt2.dto.ResidenteDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
+import com.proyecto.servidorpt2.entities.Domicilios;
+import com.proyecto.servidorpt2.entities.Residentes;
 import com.proyecto.servidorpt2.repository.AnuncioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AnuncioService {
@@ -21,34 +22,35 @@ public class AnuncioService {
     @Autowired
     private AnuncioRepository anuncioRepository;
 
-    private static final int PORT = 9876;
-    private static final String BROADCAST_IP = "255.255.255.255";
+    @Autowired
+    private Encriptar encryptionService;
 
-
-    public List<Anuncio> obtenerTodosLosAnuncios() {
-        return anuncioRepository.findAll();
+    public Optional<AnuncioDTO> obtenerAnuncioDescifradoPorId(Integer id) {
+        return anuncioRepository.findById(id)
+                .map(this::convertirAnuncioADTOConDescifrado);
     }
 
-
-    public Optional<Anuncio> obtenerAnuncioPorId(Integer id) {
-        return anuncioRepository.findById(id);
+    public List<AnuncioDTO> obtenerTodosLosAnunciosDescifrados() {
+        return anuncioRepository.findAll().stream()
+                .map(this::convertirAnuncioADTOConDescifrado)
+                .collect(Collectors.toList());
     }
 
-    public Anuncio guardarAnuncio(Anuncio anuncio) {
-        return anuncioRepository.save(anuncio);
+    public AnuncioDTO guardarAnuncioConCifrado(AnuncioDTO anuncioDTO) {
+        Anuncio anuncio = convertirDTOAAnuncioConCifrado(anuncioDTO);
+        Anuncio anuncioGuardado = anuncioRepository.save(anuncio);
+        return convertirAnuncioADTOConDescifrado(anuncioGuardado);
     }
-
 
     public void eliminarAnuncio(Integer id) {
         anuncioRepository.deleteById(id);
     }
 
-
     public void eliminarTodosLosAnuncios() {
         anuncioRepository.deleteAll();
     }
 
-    public AnuncioDTO convertirAnuncioAAnuncioDTO(Anuncio anuncio) {
+    private AnuncioDTO convertirAnuncioADTOConDescifrado(Anuncio anuncio) {
         AnuncioDTO dto = new AnuncioDTO();
         dto.setIdMensaje(anuncio.getIdMensaje());
         dto.setTitulo(anuncio.getTitulo());
@@ -57,29 +59,113 @@ public class AnuncioService {
         dto.setEsAudio(anuncio.isEsAudio());
 
         if (anuncio.getResidente() != null) {
-            ResidenteDTO residenteDTO = new ResidenteDTO();
-            residenteDTO.setIdResidente(anuncio.getResidente().getIdResidente());
-            residenteDTO.setNombre(anuncio.getResidente().getNombre());
-            residenteDTO.setApellido(anuncio.getResidente().getApellido());
-            residenteDTO.setApodo(anuncio.getResidente().getApodo());
-            residenteDTO.setComercio(anuncio.getResidente().getComercio());
-
-            if (anuncio.getResidente().getDomicilio() != null) {
-                DomicilioDTO domicilioDTO = new DomicilioDTO();
-                domicilioDTO.setIdDomicilio(anuncio.getResidente().getDomicilio().getIdDomicilio());
-                domicilioDTO.setDireccion(anuncio.getResidente().getDomicilio().getDireccion());
-                domicilioDTO.setReferencia(anuncio.getResidente().getDomicilio().getReferencia());
-                domicilioDTO.setCoordenadas(anuncio.getResidente().getDomicilio().getCoordenadas());
-                residenteDTO.setDomicilio(domicilioDTO);
+            try {
+                dto.setResidente(convertirResidenteADTOConDescifrado(anuncio.getResidente()));
+            } catch (Exception e) {
+                System.err.println("Error al descifrar los datos del residente: " + e.getMessage());
             }
-
-            dto.setResidente(residenteDTO);
         }
-
         return dto;
     }
 
+    private ResidenteDTO convertirResidenteADTOConDescifrado(Residentes residente) {
+        ResidenteDTO residenteDTO = new ResidenteDTO();
+        residenteDTO.setIdResidente(residente.getIdResidente());
 
+        // Descifra solo los campos sensibles
+        residenteDTO.setNombre(safeDecrypt(residente.getNombre()));
+        residenteDTO.setApellido(safeDecrypt(residente.getApellido()));
 
+        // Asigna directamente los campos que no necesitan cifrado
+        residenteDTO.setApodo(residente.getApodo());
+        residenteDTO.setComercio(residente.getComercio());
 
+        if (residente.getDomicilio() != null) {
+            try {
+                residenteDTO.setDomicilio(convertirDomicilioADTOConDescifrado(residente.getDomicilio()));
+            } catch (Exception e) {
+                System.err.println("Error al descifrar los datos del domicilio: " + e.getMessage());
+            }
+        }
+        return residenteDTO;
+    }
+
+    private DomicilioDTO convertirDomicilioADTOConDescifrado(Domicilios domicilio) {
+        DomicilioDTO domicilioDTO = new DomicilioDTO();
+        domicilioDTO.setIdDomicilio(domicilio.getIdDomicilio());
+
+        domicilioDTO.setDireccion(safeDecrypt(domicilio.getDireccion()));
+        domicilioDTO.setReferencia(safeDecrypt(domicilio.getReferencia()));
+        domicilioDTO.setCoordenadas(safeDecrypt(domicilio.getCoordenadas()));
+
+        return domicilioDTO;
+    }
+
+    private Anuncio convertirDTOAAnuncioConCifrado(AnuncioDTO anuncioDTO) {
+        Anuncio anuncio = new Anuncio();
+        anuncio.setTitulo(anuncioDTO.getTitulo());
+        anuncio.setContenidoDelMensaje(anuncioDTO.getContenidoDelMensaje());
+        anuncio.setFechaMensaje(LocalDateTime.parse(anuncioDTO.getFechaMensaje()));
+        anuncio.setEsAudio(anuncioDTO.isEsAudio());
+
+        if (anuncioDTO.getIdResidente() != null) {
+            Residentes residente = new Residentes();
+            residente.setIdResidente(anuncioDTO.getIdResidente());
+            anuncio.setResidente(residente);
+        }
+        return anuncio;
+    }
+
+    private Residentes convertirDTOAResidenteConCifrado(ResidenteDTO residenteDTO) {
+        Residentes residente = new Residentes();
+        residente.setIdResidente(residenteDTO.getIdResidente());
+
+        // Cifra solo los campos sensibles
+        residente.setNombre(safeEncrypt(residenteDTO.getNombre()));
+        residente.setApellido(safeEncrypt(residenteDTO.getApellido()));
+
+        // Almacena directamente los campos que no requieren cifrado
+        residente.setApodo(residenteDTO.getApodo());
+        residente.setComercio(residenteDTO.getComercio());
+
+        if (residenteDTO.getDomicilio() != null) {
+            residente.setDomicilio(convertirDTOADomicilioConCifrado(residenteDTO.getDomicilio()));
+        }
+        return residente;
+    }
+
+    private Domicilios convertirDTOADomicilioConCifrado(DomicilioDTO domicilioDTO) {
+        Domicilios domicilio = new Domicilios();
+        domicilio.setIdDomicilio(domicilioDTO.getIdDomicilio());
+
+        domicilio.setDireccion(safeEncrypt(domicilioDTO.getDireccion()));
+        domicilio.setReferencia(safeEncrypt(domicilioDTO.getReferencia()));
+        domicilio.setCoordenadas(safeEncrypt(domicilioDTO.getCoordenadas()));
+
+        return domicilio;
+    }
+
+    private String safeDecrypt(String encryptedData) {
+        if (encryptedData == null || encryptedData.isEmpty()) {
+            return null;
+        }
+        try {
+            return encryptionService.decrypt(encryptedData);
+        } catch (Exception e) {
+            System.err.println("Error al descifrar el dato: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String safeEncrypt(String data) {
+        if (data == null) {
+            return null;
+        }
+        try {
+            return encryptionService.encrypt(data);
+        } catch (Exception e) {
+            System.err.println("Error al cifrar el dato: " + e.getMessage());
+            return null;
+        }
+    }
 }
