@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.FileDescriptor;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -31,22 +32,46 @@ public class ResidentesController {
     @GetMapping("/obtenerResidenteDomicilio")
     public ResponseEntity<Object> obtenerTodosLosResidentesConDomicilio() {
         try {
-            // Obtener los residentes con domicilio, asegurándonos de que tengan domicilio
+            // Obtener todos los residentes con domicilio
             List<Residentes> residentes = residentesService.obtenerResidentesConDomicilio();
 
-            // Filtrar los residentes que no tienen domicilio
-            residentes = residentes.stream()
-                    .filter(residente -> residente.getDomicilio() != null)  // Filtramos los residentes sin domicilio
+            // Obtener todos los domicilios desencriptados
+            List<Domicilios> domicilios = domiciliosService.obtenerTodosLosDomicilios();
+
+            // Crear un Map para relacionar idDomicilio con el objeto Domicilios
+            Map<Integer, Domicilios> domicilioMap = domicilios.stream()
+                    .collect(Collectors.toMap(Domicilios::getIdDomicilio, domicilio -> domicilio));
+
+            // Asignar el domicilio correcto a cada residente
+            List<Residentes> residentesConDomicilio = residentes.stream()
+                    .filter(residente -> residente.getDomicilio() != null)
+                    .peek(residente -> {
+                        Domicilios domicilio = domicilioMap.get(residente.getDomicilio().getIdDomicilio());
+                        if (domicilio != null) {
+                            residente.setDomicilio(domicilio);
+                        }
+                    })
                     .collect(Collectors.toList());
 
-            return new ResponseEntity<>(residentes, HttpStatus.OK);
+            return new ResponseEntity<>(residentesConDomicilio, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de residentes con domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping("/obtenerTodosResidentes")
     public List<ResidenteDTO> obtenerTodosLosResidentesDTO() {
+        // Obtener todos los residentes
         List<Residentes> residentes = residentesService.obtenerTodosLosResidentes();
+
+        // Obtener todos los domicilios desencriptados
+        List<Domicilios> domicilios = domiciliosService.obtenerTodosLosDomicilios();
+
+        // Crear un Map para relacionar idDomicilio con el objeto Domicilios
+        Map<Integer, Domicilios> domicilioMap = domicilios.stream()
+                .collect(Collectors.toMap(Domicilios::getIdDomicilio, domicilio -> domicilio));
+
+        // Mapear cada residente a su DTO, asignando el domicilio correcto
         return residentes.stream().map(residente -> {
             ResidenteDTO dto = new ResidenteDTO();
             dto.setIdResidente(residente.getIdResidente());
@@ -55,16 +80,21 @@ public class ResidentesController {
             dto.setApodo(residente.getApodo());
             dto.setComercio(residente.getComercio());
 
+            // Asignar el domicilio correcto si existe
             if (residente.getDomicilio() != null) {
-                DomicilioDTO domicilioDTO = new DomicilioDTO();
-                domicilioDTO.setIdDomicilio(residente.getDomicilio().getIdDomicilio());
-                domicilioDTO.setDireccion(residente.getDomicilio().getDireccion());
-                dto.setDomicilio(domicilioDTO);
+                Domicilios domicilio = domicilioMap.get(residente.getDomicilio().getIdDomicilio());
+                if (domicilio != null) {
+                    DomicilioDTO domicilioDTO = new DomicilioDTO();
+                    domicilioDTO.setIdDomicilio(domicilio.getIdDomicilio());
+                    domicilioDTO.setDireccion(domicilio.getDireccion());
+                    domicilioDTO.setReferencia(domicilio.getReferencia());
+                    domicilioDTO.setCoordenadas(domicilio.getCoordenadas());
+                    dto.setDomicilio(domicilioDTO);
+                }
             }
             return dto;
         }).collect(Collectors.toList());
     }
-
     // Obtener un residente por su ID
     @GetMapping("/{id}")
     public ResponseEntity<Object> obtenerResidentePorId(@PathVariable Integer id) {
