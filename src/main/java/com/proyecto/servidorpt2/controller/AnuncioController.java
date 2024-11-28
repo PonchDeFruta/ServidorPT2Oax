@@ -6,10 +6,7 @@ import com.proyecto.servidorpt2.dto.DomicilioDTO;
 import com.proyecto.servidorpt2.dto.ResidenteDTO;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.entities.Residentes;
-import com.proyecto.servidorpt2.service.AnuncioService;
-import com.proyecto.servidorpt2.service.BroadcastService;
-import com.proyecto.servidorpt2.service.DomiciliosService;
-import com.proyecto.servidorpt2.service.ResidentesService;
+import com.proyecto.servidorpt2.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +24,9 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/anuncios")
 public class AnuncioController {
+
+    @Autowired
+    private DispositivoService dispositivoService;
 
     @Autowired
     private AnuncioService anuncioService;
@@ -81,6 +81,29 @@ public class AnuncioController {
                     .collect(Collectors.toList());
 
             return new ResponseEntity<>(anunciosDeHoyDTO.isEmpty() ? new ApiResponse("info", "No hay anuncios para el día de hoy") : anunciosDeHoyDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener los anuncios de hoy: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @GetMapping("/hoyMasDispositivo")
+    public ResponseEntity<Object> obtenerAnunciosDeHoyDispositivo(@RequestHeader("Dispositivo") String nombreDispositivo) {
+        try {
+            List<AnuncioDTO> anunciosDeHoyDTO = anuncioService.obtenerTodosLosAnunciosDescifrados().stream()
+                    .filter(anuncio -> {
+                        LocalDateTime fechaMensaje = LocalDateTime.parse(anuncio.getFechaMensaje(), formatter);
+                        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+                        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+                        return fechaMensaje.isAfter(startOfDay) && fechaMensaje.isBefore(endOfDay);
+                    })
+                    .peek(anuncio -> {
+                        // Registrar recepción para cada anuncio
+                        dispositivoService.registrarRecepcionUnica(anuncio.getIdMensaje(), nombreDispositivo);
+                    })
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(anunciosDeHoyDTO.isEmpty()
+                    ? new ApiResponse("info", "No hay anuncios para el día de hoy")
+                    : anunciosDeHoyDTO, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al obtener los anuncios de hoy: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }

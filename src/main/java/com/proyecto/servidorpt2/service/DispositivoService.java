@@ -1,7 +1,10 @@
 package com.proyecto.servidorpt2.service;
 
+import com.proyecto.servidorpt2.entities.Anuncio;
 import com.proyecto.servidorpt2.entities.Dispositivo;
 import com.proyecto.servidorpt2.repository.DispositivoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +13,7 @@ import java.util.Optional;
 
 @Service
 public class DispositivoService {
+    private static final Logger logger = LoggerFactory.getLogger(DispositivoService.class);
 
     @Autowired
     private DispositivoRepository dispositivoRepository;
@@ -32,5 +36,32 @@ public class DispositivoService {
     // Eliminar un dispositivo por su ID
     public void eliminarDispositivo(Integer id) {
         dispositivoRepository.deleteById(id);
+    }
+
+    public void registrarRecepcionUnica(Integer idMensaje, String nombreDispositivo) {
+        if (idMensaje == null || nombreDispositivo == null) return;
+
+        // Buscar si ya existe un registro para este dispositivo y mensaje
+        dispositivoRepository.findByNombreDispositivoAndAnuncio_IdMensaje(nombreDispositivo, idMensaje)
+                .ifPresentOrElse(
+                        dispositivo -> {
+                            logger.info("Mensaje {} ya recibido por el dispositivo {}", idMensaje, nombreDispositivo);
+                        },
+                        () -> {
+                            // Crear un nuevo registro si no existe
+                            Dispositivo nuevoDispositivo = new Dispositivo();
+                            nuevoDispositivo.setNombreDispositivo(nombreDispositivo);
+                            nuevoDispositivo.setContadorRecepcionMensajes(1);
+
+                            // Asociar el mensaje (Anuncio)
+                            Anuncio anuncio = new Anuncio();
+                            anuncio.setIdMensaje(idMensaje); // Solo necesita el ID para la asociación
+                            nuevoDispositivo.setAnuncio(anuncio);
+
+                            // Guardar en la base de datos
+                            dispositivoRepository.save(nuevoDispositivo);
+                            logger.info("Mensaje {} registrado para el dispositivo {}", idMensaje, nombreDispositivo);
+                        }
+                );
     }
 }

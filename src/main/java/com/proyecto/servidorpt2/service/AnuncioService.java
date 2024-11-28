@@ -5,9 +5,13 @@ import com.proyecto.servidorpt2.dto.AnuncioDTO;
 import com.proyecto.servidorpt2.dto.DomicilioDTO;
 import com.proyecto.servidorpt2.dto.ResidenteDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
+import com.proyecto.servidorpt2.entities.Dispositivo;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.entities.Residentes;
 import com.proyecto.servidorpt2.repository.AnuncioRepository;
+import com.proyecto.servidorpt2.repository.DispositivoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +22,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class AnuncioService {
+    private static final Logger logger = LoggerFactory.getLogger(BroadcastService.class);
+
+    @Autowired
+    private DispositivoRepository dispositivoRepository;
 
     @Autowired
     private AnuncioRepository anuncioRepository;
