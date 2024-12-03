@@ -1,7 +1,7 @@
 
 package com.proyecto.servidorpt2.controller;
 
-import com.proyecto.servidorpt2.Utils.ApiResponse;
+import com.proyecto.servidorpt2.utils.ApiResponse;
 import com.proyecto.servidorpt2.dto.DomicilioDTO;
 import com.proyecto.servidorpt2.dto.ResidenteDTO;
 import com.proyecto.servidorpt2.entities.Domicilios;

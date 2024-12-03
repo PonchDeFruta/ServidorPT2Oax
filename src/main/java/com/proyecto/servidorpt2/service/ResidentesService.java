@@ -1,6 +1,7 @@
 package com.proyecto.servidorpt2.service;
 
-import com.proyecto.servidorpt2.Utils.Encriptar;
+import com.proyecto.servidorpt2.entities.Domicilios;
+import com.proyecto.servidorpt2.utils.Encriptar;
 import com.proyecto.servidorpt2.entities.Residentes;
 import com.proyecto.servidorpt2.repository.ResidentesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
