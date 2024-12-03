@@ -1,6 +1,6 @@
 package com.proyecto.servidorpt2.controller;
 
-import com.proyecto.servidorpt2.Utils.ApiResponse;
+import com.proyecto.servidorpt2.utils.ApiResponse;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.service.DomiciliosService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,9 @@ public class DomiciliosController {
     public ResponseEntity<ApiResponse> crearDomicilio(@RequestBody Domicilios domicilio) {
         try {
             domiciliosService.guardarDomicilio(domicilio);
-            return new ResponseEntity<>(new ApiResponse("success", "Domicilio creado con éxito"), HttpStatus.CREATED);
+            ApiResponse respuesta = new ApiResponse("success", "Domicilio creado con éxito");
+            respuesta.agregarID("idDomicilio",domicilio.getIdDomicilio());
+            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al crear el domicilio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }

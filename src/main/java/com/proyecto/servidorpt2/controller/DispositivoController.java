@@ -1,6 +1,6 @@
 package com.proyecto.servidorpt2.controller;
 
-import com.proyecto.servidorpt2.Utils.ApiResponse;
+import com.proyecto.servidorpt2.utils.ApiResponse;
 import com.proyecto.servidorpt2.entities.Dispositivo;
 import com.proyecto.servidorpt2.service.DispositivoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,9 @@ public class DispositivoController {
         try {
             Optional<Dispositivo> dispositivoData = dispositivoService.obtenerDispositivoPorId(id);
             if (dispositivoData.isPresent()) {
-                return new ResponseEntity<>(dispositivoData.get(), HttpStatus.OK); // Devuelve el dispositivo directamente
+                ApiResponse respuesta = new ApiResponse("success", dispositivoData.get().toString());
+                return new ResponseEntity<>(respuesta, HttpStatus.OK); // Devuelve el dispositivo directamente
+
             } else {
                 return new ResponseEntity<>(new ApiResponse("error", "Dispositivo no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }

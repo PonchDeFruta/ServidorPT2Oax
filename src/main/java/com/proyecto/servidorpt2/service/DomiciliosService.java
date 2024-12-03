@@ -1,6 +1,6 @@
 package com.proyecto.servidorpt2.service;
 
-import com.proyecto.servidorpt2.Utils.Encriptar;
+import com.proyecto.servidorpt2.utils.Encriptar;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.repository.DomiciliosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,9 @@ public class DomiciliosService {
         domicilio.ifPresent(this::desencriptarDomicilio);
         return domicilio;
     }
-
+    public Optional<Domicilios> obtenerDomicilioSinDescifrarPorId(Integer id) {
+        return domiciliosRepository.findById(id);
+    }
     public Domicilios guardarDomicilio(Domicilios domicilio) {
         encriptarDomicilio(domicilio);
         return domiciliosRepository.save(domicilio);

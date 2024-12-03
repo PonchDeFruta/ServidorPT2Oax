@@ -130,7 +130,9 @@ public class ResidentesController {
             System.out.println("Residente: " + residente);
             // Guardar el residente
             residentesService.guardarResidente(residente);
-            return new ResponseEntity<>(new ApiResponse("success", "Residente creado con éxito"), HttpStatus.CREATED);
+            ApiResponse respuesta = new ApiResponse("success", "Residente creado con éxito");
+            respuesta.agregarID("id", residente.getIdResidente());
+            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiResponse("error", "Error al crear el residente: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -152,6 +154,38 @@ public class ResidentesController {
             return new ResponseEntity<>(new ApiResponse("error", "Error al actualizar el residente: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    // Asociar un domicilio existente a un residente
+    @PutMapping("/{id}/domicilio/{domicilioId}")
+    public ResponseEntity<ApiResponse> asociarDomicilioAResidente(@PathVariable Integer id, @PathVariable Integer domicilioId) {
+        try {
+            // Verificar si el residente existe
+            Optional<Residentes> residenteOpt = residentesService.obtenerResidentePorId(id);
+            if (residenteOpt.isEmpty()) {
+                return new ResponseEntity<>(new ApiResponse("error", "Residente no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
+            }
+
+            // Verificar si el domicilio existe (sin descifrar)
+            Optional<Domicilios> domicilioOpt = domiciliosService.obtenerDomicilioSinDescifrarPorId(domicilioId);
+            if (domicilioOpt.isEmpty()) {
+                return new ResponseEntity<>(new ApiResponse("error", "Domicilio no encontrado con ID: " + domicilioId), HttpStatus.NOT_FOUND);
+            }
+
+            // Asociar el domicilio al residente sin modificar el domicilio
+            Residentes residente = residenteOpt.get();
+            residente.setDomicilio(domicilioOpt.get());
+            residentesService.guardarResidente(residente);
+
+            // Responder con éxito
+            ApiResponse response = new ApiResponse("success", "Domicilio asociado al residente con éxito");
+            response.agregarID("idResidente", residente.getIdResidente());
+            response.agregarID("idDomicilio", domicilioId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse("error", "Error al asociar el domicilio al residente: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
     // Eliminar un residente por su ID
     @DeleteMapping("/{id}")
