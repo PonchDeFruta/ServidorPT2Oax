@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.controller;
 
+import com.proyecto.servidorpt2.dto.DispositivoDTO;
 import com.proyecto.servidorpt2.utils.ApiResponse;
 import com.proyecto.servidorpt2.entities.Dispositivo;
 import com.proyecto.servidorpt2.service.DispositivoService;
@@ -19,14 +20,11 @@ public class DispositivoController {
     private DispositivoService dispositivoService;
 
     // GET: Obtener todos los dispositivos
-    @GetMapping
-    public ResponseEntity<Object> obtenerTodosLosDispositivos() {
-        try {
-            List<Dispositivo> dispositivos = dispositivoService.obtenerTodosLosDispositivos();
-            return new ResponseEntity<>(dispositivos, HttpStatus.OK); // Devuelve la lista de dispositivos directamente
-        } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al obtener la lista de dispositivos: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("/obtenerTodosLosDispositivos")
+    public ResponseEntity<List<DispositivoDTO>> obtenerTodosLosDispositivos() {
+        // Invocamos el método del servicio para obtener todos los dispositivos en formato DTO
+        List<DispositivoDTO> dispositivos = dispositivoService.obtenerTodosLosDispositivos();
+        return ResponseEntity.ok(dispositivos);
     }
 
     // GET: Obtener un dispositivo por su ID

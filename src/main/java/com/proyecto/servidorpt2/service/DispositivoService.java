@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.service;
 
+import com.proyecto.servidorpt2.dto.DispositivoDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
 import com.proyecto.servidorpt2.entities.Dispositivo;
 import com.proyecto.servidorpt2.repository.DispositivoRepository;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DispositivoService {
@@ -19,9 +21,7 @@ public class DispositivoService {
     private DispositivoRepository dispositivoRepository;
 
     // Obtener todos los dispositivos
-    public List<Dispositivo> obtenerTodosLosDispositivos() {
-        return dispositivoRepository.findAll();
-    }
+
 
     // Obtener un dispositivo por su ID
     public Optional<Dispositivo> obtenerDispositivoPorId(Integer id) {
@@ -36,6 +36,21 @@ public class DispositivoService {
     // Eliminar un dispositivo por su ID
     public void eliminarDispositivo(Integer id) {
         dispositivoRepository.deleteById(id);
+    }
+
+    public List<DispositivoDTO> obtenerTodosLosDispositivos() {
+        // Recuperamos todos los dispositivos desde la base de datos
+        List<Dispositivo> dispositivos = dispositivoRepository.findAll();
+
+        // Mapeamos la lista de dispositivos a una lista de DTOs
+        return dispositivos.stream().map(dispositivo -> {
+            return new DispositivoDTO(
+                    dispositivo.getIdDispositivo(),
+                    dispositivo.getNombreDispositivo(),
+                    dispositivo.getContadorRecepcionMensajes(),
+                    dispositivo.getAnuncio() != null ? dispositivo.getAnuncio().getIdMensaje() : null
+            );
+        }).collect(Collectors.toList());
     }
 
     public void registrarRecepcionUnica(Integer idMensaje, String nombreDispositivo) {

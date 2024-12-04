@@ -42,12 +42,22 @@ public class AnuncioService {
                 .map(this::convertirAnuncioADTOConDescifrado)
                 .collect(Collectors.toList());
     }
+    public List<Anuncio> obtenerAnunciosPorIdResidente(Integer idResidente) {
+        // Obtener los anuncios asociados al residente
+        List<Anuncio> anuncios = anuncioRepository.findByResidenteIdResidente(idResidente);
+
+        // No realizar desencriptación de los datos del residente
+        return anuncios;
+    }
+
+
 
     public AnuncioDTO guardarAnuncioConCifrado(AnuncioDTO anuncioDTO) {
         Anuncio anuncio = convertirDTOAAnuncioConCifrado(anuncioDTO);
         Anuncio anuncioGuardado = anuncioRepository.save(anuncio);
         return convertirAnuncioADTOConDescifrado(anuncioGuardado);
     }
+
 
     public void eliminarAnuncio(Integer id) {
         anuncioRepository.deleteById(id);
@@ -57,7 +67,7 @@ public class AnuncioService {
         anuncioRepository.deleteAll();
     }
 
-    private AnuncioDTO convertirAnuncioADTOConDescifrado(Anuncio anuncio) {
+    public AnuncioDTO convertirAnuncioADTOConDescifrado(Anuncio anuncio) {
         AnuncioDTO dto = new AnuncioDTO();
         dto.setIdMensaje(anuncio.getIdMensaje());
         dto.setTitulo(anuncio.getTitulo());
@@ -74,6 +84,7 @@ public class AnuncioService {
         }
         return dto;
     }
+
 
     private ResidenteDTO convertirResidenteADTOConDescifrado(Residentes residente) {
         ResidenteDTO residenteDTO = new ResidenteDTO();
@@ -139,6 +150,13 @@ public class AnuncioService {
             residente.setDomicilio(convertirDTOADomicilioConCifrado(residenteDTO.getDomicilio()));
         }
         return residente;
+    }
+    public Anuncio actualizarAnuncio(Anuncio anuncio) {
+        if (anuncio.getIdMensaje() == null) {
+            throw new IllegalArgumentException("El ID del anuncio no puede ser nulo para la actualización.");
+        }
+
+        return anuncioRepository.save(anuncio); // Guardar el anuncio actualizado en la base de datos
     }
 
     private Domicilios convertirDTOADomicilioConCifrado(DomicilioDTO domicilioDTO) {

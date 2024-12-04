@@ -1,5 +1,6 @@
 package com.proyecto.servidorpt2.service;
 
+import com.proyecto.servidorpt2.entities.Anuncio;
 import com.proyecto.servidorpt2.utils.Encriptar;
 import com.proyecto.servidorpt2.entities.Domicilios;
 import com.proyecto.servidorpt2.repository.DomiciliosRepository;

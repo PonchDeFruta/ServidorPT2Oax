@@ -1,9 +1,10 @@
 package com.proyecto.servidorpt2.service;
 
-import com.proyecto.servidorpt2.entities.Domicilios;
+
 import com.proyecto.servidorpt2.utils.Encriptar;
 import com.proyecto.servidorpt2.entities.Residentes;
 import com.proyecto.servidorpt2.repository.ResidentesRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,6 @@ public class ResidentesService {
 
     @Autowired
     private ResidentesRepository residentesRepository;
-
     @Autowired
     private Encriptar encryptionService;
 
@@ -46,6 +46,7 @@ public class ResidentesService {
         return residentes;
     }
 
+
     private void encriptarResidente(Residentes residente) {
         try {
             residente.setNombre(encryptionService.encrypt(residente.getNombre()));
@@ -65,4 +66,6 @@ public class ResidentesService {
             throw new RuntimeException("Error al desencriptar datos del residente", e);
         }
     }
+
+
 }
