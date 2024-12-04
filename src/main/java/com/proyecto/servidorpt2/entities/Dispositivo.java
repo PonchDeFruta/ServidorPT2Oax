@@ -24,7 +24,7 @@ public class Dispositivo {
     private Integer contadorRecepcionMensajes;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_mensaje", referencedColumnName = "id_mensaje", nullable = false)
+    @JoinColumn(name = "id_mensaje", referencedColumnName = "id_mensaje", nullable = true)
     private Anuncio anuncio;  // Relación Many-to-One con Anuncio (o Mensaje)
 
 

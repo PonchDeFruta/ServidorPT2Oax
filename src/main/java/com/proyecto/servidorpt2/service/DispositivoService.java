@@ -3,7 +3,9 @@ package com.proyecto.servidorpt2.service;
 import com.proyecto.servidorpt2.dto.DispositivoDTO;
 import com.proyecto.servidorpt2.entities.Anuncio;
 import com.proyecto.servidorpt2.entities.Dispositivo;
+import com.proyecto.servidorpt2.repository.AnuncioRepository;
 import com.proyecto.servidorpt2.repository.DispositivoRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,9 @@ public class DispositivoService {
 
     @Autowired
     private DispositivoRepository dispositivoRepository;
+
+    @Autowired
+    AnuncioRepository anuncioRepository;
 
     // Obtener todos los dispositivos
 
@@ -37,6 +42,13 @@ public class DispositivoService {
     public void eliminarDispositivo(Integer id) {
         dispositivoRepository.deleteById(id);
     }
+    public void eliminarDispositivosPorIdMensaje(Integer idMensaje) {
+        List<Dispositivo> dispositivos = dispositivoRepository.findByAnuncioIdMensaje(idMensaje);
+        // Eliminar todos los dispositivos relacionados con el anuncio
+        dispositivoRepository.deleteAll(dispositivos); // Eliminar los dispositivos
+    }
+
+
 
     public List<DispositivoDTO> obtenerTodosLosDispositivos() {
         // Recuperamos todos los dispositivos desde la base de datos
@@ -79,4 +91,5 @@ public class DispositivoService {
                         }
                 );
     }
+
 }

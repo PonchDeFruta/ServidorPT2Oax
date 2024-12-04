@@ -162,7 +162,7 @@ public class AnuncioController {
     public ResponseEntity<ApiResponse> actualizarAnuncio(@PathVariable Integer id, @RequestBody AnuncioDTO anuncioDTO) {
         try {
             if (anuncioService.obtenerAnuncioDescifradoPorId(id).isPresent()) {
-                anuncioDTO.setIdMensaje(id); // Asegura que el id se respete durante la actualización
+                eliminarAnuncio(id);
                 anuncioService.guardarAnuncioConCifrado(anuncioDTO);
                 return new ResponseEntity<>(new ApiResponse("success", "Anuncio actualizado con éxito"), HttpStatus.OK);
             }
@@ -175,15 +175,24 @@ public class AnuncioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> eliminarAnuncio(@PathVariable Integer id) {
         try {
-            if (anuncioService.obtenerAnuncioDescifradoPorId(id).isPresent()) {
+            // Verificar si el anuncio existe
+            Optional<AnuncioDTO> anuncioOpt = anuncioService.obtenerAnuncioDescifradoPorId(id); // Cambié el tipo a AnuncioDTO
+            if (anuncioOpt.isPresent()) {
+                // Eliminar los dispositivos relacionados
+                dispositivoService.eliminarDispositivosPorIdMensaje(id);
+
+                // Eliminar el anuncio
                 anuncioService.eliminarAnuncio(id);
-                return new ResponseEntity<>(new ApiResponse("success", "Anuncio eliminado con éxito"), HttpStatus.OK);
+
+                return new ResponseEntity<>(new ApiResponse("success", "Anuncio y dispositivos eliminados con éxito"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ApiResponse("error", "Anuncio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
             }
-            return new ResponseEntity<>(new ApiResponse("error", "Anuncio no encontrado con ID: " + id), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el anuncio: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResponse("error", "Error al eliminar el anuncio y los dispositivos: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @DeleteMapping("/borrarTodos")
     public ResponseEntity<ApiResponse> borrarTodosLosAnuncios() {
