@@ -15,7 +15,7 @@ public class BroadcastService {
     private static final Logger logger = LoggerFactory.getLogger(BroadcastService.class);
 
     private static final int PORT = 9876;
-    private static final String BROADCAST_IP = "192.168.3.255"; // Ajustar a la ip
+    private static final String BROADCAST_IP = "192.1.1.255"; // Ajustar a la ip
 
     public void enviarAnuncioPorBroadcast(AnuncioDTO anuncioDTO) {
         try (DatagramSocket socket = new DatagramSocket()) {
